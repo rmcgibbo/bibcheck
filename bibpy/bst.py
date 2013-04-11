@@ -861,28 +861,28 @@ class Bstparser :
         else :
             raise NameError("{ expected 2")
 
-def main() :    
-    """Main function"""
-
-    _bst_filename = sys.argv[1]
-    _bib_filename = sys.argv[2]
-
-    with open( _bst_filename, 'r' ) as f :
-        bst_file_data = f.read()     
-
-    with open( _bib_filename, 'r' ) as f :
-        bib_file_data = f.read()     
-    
-    bst_file_data = clear_comments(bst_file_data) 
-    bib_file_data = clear_comments(bib_file_data) 
-
-    bst = Bstparser(bst_file_data, bib_file_data)
-    bst.parse()
-
-    print "------"
-    print
-    print STACK
-    print BUFFER
-    
-if __name__ == "__main__" :
-    main()
+# def main() :    
+#     """Main function"""
+# 
+#     _bst_filename = sys.argv[1]
+#     _bib_filename = sys.argv[2]
+# 
+#     with open( _bst_filename, 'r' ) as f :
+#         bst_file_data = f.read()     
+# 
+#     with open( _bib_filename, 'r' ) as f :
+#         bib_file_data = f.read()     
+#     
+#     bst_file_data = clear_comments(bst_file_data) 
+#     bib_file_data = clear_comments(bib_file_data) 
+# 
+#     bst = Bstparser(bst_file_data, bib_file_data)
+#     bst.parse()
+# 
+#     print "------"
+#     print
+#     print STACK
+#     print BUFFER
+#     
+# if __name__ == "__main__" :
+#     main()

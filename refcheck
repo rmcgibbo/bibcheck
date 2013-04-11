@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+import os
+from argparse import ArgumentParser
+
+from bibpy import bib
+from bibpy import schemas
+
+
+def parse_cmd_line():
+    def bibtexfilename(fn):
+        if not fn.endswith('.bib'):
+            raise ValueError('bibtex filename must end in .bib')
+        return fn
+
+    argparser = ArgumentParser(description="""
+    Validator for bibtex files
+    """)
+    argparser.add_argument('bibtex', type=bibtexfilename)
+    argparser.add_argument('--schema', default='ACS', help='The schema specifies which bibtex fields are required for a particular journal. Default="ACS"')
+
+    args = argparser.parse_args()
+    # print args
+    return args
+
+def main():
+    args = parse_cmd_line()
+    with open(args.bibtex) as f:
+        lines = os.linesep.join(l.strip() for l in f)
+    
+    bibobject = bib.Bibparser(lines)
+    bibobject.parse()
+    
+    schema = getattr(schemas, args.schema)
+    bibobject.validate(schema)
+
+
+if __name__ == '__main__':
+    main()

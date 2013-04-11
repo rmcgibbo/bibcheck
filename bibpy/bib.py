@@ -20,10 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-import fileinput
+import os
 import re
 import json
+from collections import OrderedDict
 from pprint import pprint
+
+import abbrevs
 
 def clear_comments(data):
     """Return the bibtex content without comments"""
@@ -31,14 +34,17 @@ def clear_comments(data):
     res = re.sub(r"(comment [^\n]*\n)", '', res)
     return res
 
-def log( f ):    
+def log( f ):
     return f
+    
+def warn(msg):
+    print 'Warning: {}'.format(msg)
 
 class Bibparser() :
     """Main class for Bibtex parsing"""
 
     def tokenize(self) :
-        """Returns a token iterator"""        
+        """Returns a token iterator"""
         for item in self.token_re.finditer(self.data):
             i = item.group(0)
             if self.white.match(i) :
@@ -46,60 +52,60 @@ class Bibparser() :
                     self.line += 1
                 continue
             else :
-                yield i            
+                yield i
 
     def __init__(self, data) :
-        self.data = data    
+        self.data = data
         self.token = None
         self.token_type = None
         self._next_token = self.tokenize().next
         self.hashtable = {}
         self.mode = None
-        self.records = {}        
+        self.records = OrderedDict()
         self.line = 1
 
         # compile some regexes
         self.white = re.compile(r"[\n|\s]+")
         self.nl = re.compile(r"[\n]")
         self.token_re = re.compile(r"([^\s\"#%'(){}@,=]+|\n|@|\"|{|}|=|,)")
-    
+
     def parse(self) :
         """Parses self.data and stores the parsed bibtex to self.rec"""
         while True :
             try :
-                self.next_token()               
+                self.next_token()
                 while self.database() :
-                    pass            
+                    pass
             except StopIteration :
                 break
-    
+
     def next_token(self):
-        """Returns next token"""        
+        """Returns next token"""
         self.token = self._next_token()
         #print self.line, self.token
-    
+
     @log
     def database(self) :
         """Database"""
-        if self.token == '@' :            
-            self.next_token()            
+        if self.token == '@' :
+            self.next_token()
             self.entry()
-    
+
     @log
-    def entry(self) :  
-        """Entry"""     
+    def entry(self) :
+        """Entry"""
         if self.token.lower() == 'string' :
             self.mode = 'string'
             self.string()
             self.mode = None
         else :
-            self.mode = 'record'            
+            self.mode = 'record'
             self.record()
             self.mode = None
 
     @log
-    def string(self) :   
-        """String"""   
+    def string(self) :
+        """String"""
         if self.token.lower() == "string" :
             self.next_token()
             if self.token == "{" :
@@ -107,20 +113,20 @@ class Bibparser() :
                 self.field()
                 if self.token == "}" :
                     pass
-                else :                      
+                else :
                     raise NameError("} missing")
-    
+
     @log
     def field(self) :
         """Field"""
         name = self.name()
         if self.token == '=' :
             self.next_token()
-            value = self.value()            
-            if self.mode == 'string' :                
+            value = self.value()
+            if self.mode == 'string' :
                 self.hashtable[name] = value
-            return (name, value)            
-    
+            return (name, value)
+
     @log
     def value(self) :
         """Value"""
@@ -128,29 +134,29 @@ class Bibparser() :
         val = []
 
         while True :
-            if self.token == '"' :              
+            if self.token == '"' :
                 while True:
                     self.next_token()
                     if self.token == '"' :
                         break
                     else :
-                        val.append(self.token)            
-                if self.token == '"' :          
+                        val.append(self.token)
+                if self.token == '"' :
                     self.next_token()
                 else :
                     raise NameError("\" missing")
-            elif self.token == '{' :            
+            elif self.token == '{' :
                 brac_counter = 0
                 while True:
                     self.next_token()
                     if self.token == '{' :
                         brac_counter += 1
-                    if self.token == '}' :              
+                    if self.token == '}' :
                         brac_counter -= 1
                     if brac_counter < 0 :
                         break
                     else :
-                        val.append(self.token)            
+                        val.append(self.token)
                 if self.token == '}' :
                     self.next_token()
                 else :
@@ -159,13 +165,13 @@ class Bibparser() :
                 value = self.query_hashtable(self.token)
                 val.append(value)
                 while True:
-                    self.next_token()                    
-                    # if token is in hashtable then replace                    
+                    self.next_token()
+                    # if token is in hashtable then replace
                     value = self.query_hashtable(self.token)
                     if re.match(r"[^\w#]|,|}|{", self.token) : #self.token == '' :
                         break
                     else :
-                        val.append(value) 
+                        val.append(value)
 
             elif self.token.isdigit() :
                 value = self.token
@@ -174,13 +180,13 @@ class Bibparser() :
                 if self.token in self.hashtable :
                     value = self.hashtable[ self.token ]
                 else :
-                    value = self.token          
+                    value = self.token
                 self.next_token()
 
             if re.match(r"}|,",self.token ) :
-                break            
+                break
 
-        value = ' '.join(val)        
+        value = ' '.join(val)
         return value
 
     def query_hashtable( self, s ) :
@@ -188,34 +194,34 @@ class Bibparser() :
             return self.hashtable[ self.token ]
         else :
             return s
-    
+
     @log
     def name(self) :
         """Returns parsed Name"""
-        name = self.token       
+        name = self.token
         self.next_token()
         return name
 
     @log
-    def key(self) : 
-        """Returns parsed Key"""    
+    def key(self) :
+        """Returns parsed Key"""
         key = self.token
         self.next_token()
         return key
 
     @log
-    def record(self) : 
-        """Record""" 
-        if self.token not in ['comment', 'string', 'preamble'] :          
+    def record(self) :
+        """Record"""
+        if self.token not in ['comment', 'string', 'preamble'] :
             record_type = self.token
-            self.next_token()            
+            self.next_token()
             if self.token == '{' :
                 self.next_token()
                 key = self.key()
                 self.records[ key ] = {}
-                self.records[ key ]['type'] = record_type
+                self.records[ key ]['type'] = record_type.lower()
                 self.records[ key ]['id'] = key
-                if self.token == ',' :              
+                if self.token == ',' :
                     while True:
                         self.next_token()
                         field = self.field()
@@ -242,21 +248,21 @@ class Bibparser() :
                                 while val.find('{') > -1:
                                     caps = (val.find('{'), val.find('}'))
                                     val = val.replace(val[caps[0]:caps[1]+1], re.sub("(^|\s)(\S)", capitalize, val[caps[0]+1:caps[1]]).strip())
-                        
+
                             self.records[ key ][k] = val
-                        if self.token != ',' :                      
-                            break               
+                        if self.token != ',' :
+                            break
                     if self.token == '}' :
                         pass
                     else :
                         # assume entity ended
                         if self.token == '@' :
                             pass
-                        else :                            
+                        else :
                             raise NameError("@ missing")
 
     def parse_authors( self, authors ) :
-        res = []        
+        res = []
         authors = authors.split('and')
         for author in authors :
             _author = author.split(',')
@@ -269,45 +275,53 @@ class Bibparser() :
                 pass
             res.append( rec )
         return res
-    
+
     def json(self) :
         """Returns json formated records"""
         return json.dumps({'items':self.records.values()})
 
-def post_request( j ) :
-    import urllib
-    import urllib2
-    import json
-    url = 'http://127.0.0.1:8085/\?bibliography\=1\&citations\=1\&linkwrap\=1\&responseformat\=json\&showoutput\=1'
-    values = j    
-    req = urllib2.Request(url, values)
-    response = urllib2.urlopen(req)
-    the_page = response.read()
-    data=json.loads(the_page)
-
-    for i in xrange(len(data['bibliography'][1])) :
-        print data['bibliography'][0]['entry_ids'][i]
-        print data['bibliography'][1][i]
-        print
+    def validate(self, schema):
+        warner = Warner()
+        n_validated_entries = 0
+        journal_validator = abbrevs.Validator()
     
-def main() :
-    """Main function"""
+        
+        for key, value in self.records.iteritems():
+            type = value['type']
+            if type not in schema:
+                warner.warn('Schema does not have an entry for type={}'.format(type))
+            else:
+                required_items = schema[type].keys()
+                missing_items = set(required_items) - set(value.keys())
+                # the line that this entry is on
+                line = (i for i, l in enumerate(self.data.split(os.linesep)) if key in l).next()
+                for item in missing_items:
+                    print 'ERROR: "{}" is missing field "{}" on line {}'.format(key, item, line)
+                # if len(missing_items) > 0:
+                    # print value
+            
+            if 'journal' in value:
+                recommendation = journal_validator.validate(value['journal'])
+                if recommendation is not None:
+                    msg = 'ERROR: Journal in {} (line {}), "{}" was not correct. Consider "{}"'
+                    print msg.format(key, line, value['journal'], recommendation)
+                    print
+            #journal = value['journal']
+            #if len(journal.split()) > 1 and '.' not in journal:
+            #    print 'ERROR: {} should be a abbrev journal title, on line {}'.format(journal, line)
+            
+            
+            
+            n_validated_entries += 1
+            
+        print 'Entries validated:', n_validated_entries
 
-    # TODO: Probably a solution with iterations will be better
-    data = ""
-    for line in fileinput.input():
-        line = line.rstrip()
-        data += line + "\n"
 
-    print 'loaded...'
-    data = clear_comments(data)
-    print 'cleared...'
-    bib = Bibparser(data)
-    bib.parse()
-    data = bib.json()
-    post_request( data )
-    #print data
-    print 'done...'
-    
-if __name__ == "__main__" :
-    main()
+class Warner(object):
+    def __init__(self):
+        self._sent = set()
+
+    def warn(self, msg):
+        if msg not in self._sent:
+            print('Warning: {}'.format(msg))
+            self._sent.add(msg)
