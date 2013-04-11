@@ -1,4 +1,4 @@
-Bibpy
+bibcheck
 ===
 Fork of [ptigas/bibpy](https://github.com/ptigas/bibpy) for doing some automatic validation of your bibtex file.
 
