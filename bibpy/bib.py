@@ -300,14 +300,14 @@ class Bibparser() :
                 # the line that this entry is on
                 line = (i for i, l in enumerate(self.data.split(os.linesep)) if key in l).next()
                 for item in missing_items:
-                    print 'ERROR: "{}" is missing field "{}" on line {}'.format(key, item, line)
+                    print '\033[91mERROR: "{}" is missing field "{}" on line {}\033[0m'.format(key, item, line)
                 # if len(missing_items) > 0:
                     # print value
             
             if 'journal' in value:
                 recommendation = journal_validator.validate(value['journal'])
                 if recommendation is not None:
-                    msg = 'ERROR: Journal in {} (line {}), "{}" was not correct. Consider "{}"'
+                    msg = '\033[93mWARNING: Journal in {} (line {}), "{}" was not correct. Consider "{}"\033[0m'
                     print msg.format(key, line, value['journal'], recommendation)
                     print
             #journal = value['journal']
