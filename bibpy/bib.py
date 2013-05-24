@@ -54,7 +54,7 @@ class Bibparser() :
             else :
                 yield i
 
-    def __init__(self, data) :
+    def __init__(self, data, verbose=False):
         self.data = data
         self.token = None
         self.token_type = None
@@ -63,11 +63,12 @@ class Bibparser() :
         self.mode = None
         self.records = OrderedDict()
         self.line = 1
+        self.verbose = verbose
 
         # compile some regexes
         self.white = re.compile(r"[\n|\s]+")
         self.nl = re.compile(r"[\n]")
-        self.token_re = re.compile(r"([^\s\"#%'(){}@,=]+|\n|@|\"|{|}|=|,)")
+        self.token_re = re.compile(r"([^\s\"#'(){}@,=]+|\n|@|\"|{|}|=|,)")
 
     def parse(self) :
         """Parses self.data and stores the parsed bibtex to self.rec"""
@@ -82,7 +83,8 @@ class Bibparser() :
     def next_token(self):
         """Returns next token"""
         self.token = self._next_token()
-        #print self.line, self.token
+        if self.verbose:
+            print self.line, self.token
 
     @log
     def database(self) :
@@ -113,8 +115,8 @@ class Bibparser() :
                 self.field()
                 if self.token == "}" :
                     pass
-                else :
-                    raise NameError("} missing")
+                else:
+                    raise NameError("} missing: %s" % self.token)
 
     @log
     def field(self) :
@@ -254,12 +256,14 @@ class Bibparser() :
                             break
                     if self.token == '}' :
                         pass
+                    elif self.token.startswith('%'):
+                        pass
                     else :
                         # assume entity ended
                         if self.token == '@' :
                             pass
-                        else :
-                            raise NameError("@ missing")
+                        else:
+                            raise NameError("@ missing %s" % self.token)
 
     def parse_authors( self, authors ) :
         res = []

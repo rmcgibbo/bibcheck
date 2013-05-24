@@ -16,6 +16,7 @@ def parse_cmd_line():
     Validator for bibtex files
     """)
     argparser.add_argument('bibtex', type=bibtexfilename)
+    argparser.add_argument('-v', '--verbose', action='store_true')
     argparser.add_argument('--schema', default='ACS', help='The schema specifies which bibtex fields are required for a particular journal. Default="ACS"')
 
     args = argparser.parse_args()
@@ -27,7 +28,7 @@ def main():
     with open(args.bibtex) as f:
         lines = os.linesep.join(l.strip() for l in f)
     
-    bibobject = bib.Bibparser(lines)
+    bibobject = bib.Bibparser(lines, verbose=args.verbose)
     bibobject.parse()
     
     schema = getattr(schemas, args.schema)
