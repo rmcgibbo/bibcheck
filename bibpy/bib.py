@@ -310,10 +310,6 @@ class Bibparser() :
                     msg = '\033[93mWARNING: Journal in {} (line {}), "{}" was not correct. Consider "{}"\033[0m'
                     print msg.format(key, line, value['journal'], recommendation)
                     print
-            #journal = value['journal']
-            #if len(journal.split()) > 1 and '.' not in journal:
-            #    print 'ERROR: {} should be a abbrev journal title, on line {}'.format(journal, line)
-            
             
             
             n_validated_entries += 1

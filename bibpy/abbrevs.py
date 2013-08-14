@@ -14,7 +14,10 @@ class Validator(object):
 
     def validate(self, journal):
         if journal not in self.abbrevs:
-            closest = difflib.get_close_matches(journal, self.all, n=1)[0]
+            matches = difflib.get_close_matches(journal, self.all, n=1)
+            if len(matches) == 0:
+                return None
+            closest = matches[0]
             if closest in self.fulltitles:
                 i = self.fulltitles.index(closest)
                 closest = self.abbrevs[i]

@@ -17,7 +17,7 @@ def parse_cmd_line():
     """)
     argparser.add_argument('bibtex', type=bibtexfilename)
     argparser.add_argument('-v', '--verbose', action='store_true')
-    argparser.add_argument('--schema', default='ACS', help='The schema specifies which bibtex fields are required for a particular journal. Default="ACS"')
+    argparser.add_argument('--schema', default='ACS', help='The schema specifies which bibtex fields are required for a particular journal. Default="ACS"', choices=['ACS'])
 
     args = argparser.parse_args()
     # print args
