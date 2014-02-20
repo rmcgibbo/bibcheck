@@ -219,6 +219,7 @@ class Bibparser() :
             self.next_token()
             if self.token == '{' :
                 self.next_token()
+                print self.token
                 key = self.key()
                 self.records[ key ] = {}
                 self.records[ key ]['type'] = record_type.lower()
@@ -291,12 +292,12 @@ class Bibparser() :
     
         
         for key, value in self.records.iteritems():
-            type = value['type']
+            type = value['type'].lower()
             if type not in schema:
                 warner.warn('Schema does not have an entry for type={}'.format(type))
             else:
                 required_items = schema[type].keys()
-                missing_items = set(required_items) - set(value.keys())
+                missing_items = set(required_items) - set([e.lower() for e in value.keys()])
                 # the line that this entry is on
                 line = (i for i, l in enumerate(self.data.split(os.linesep)) if key in l).next()
                 for item in missing_items:
