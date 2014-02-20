@@ -219,7 +219,6 @@ class Bibparser() :
             self.next_token()
             if self.token == '{' :
                 self.next_token()
-                print self.token
                 key = self.key()
                 self.records[ key ] = {}
                 self.records[ key ]['type'] = record_type.lower()
@@ -266,19 +265,19 @@ class Bibparser() :
                         else:
                             raise NameError("@ missing %s" % self.token)
 
-    def parse_authors( self, authors ) :
+    def parse_authors(self, authors):
         res = []
-        authors = authors.split('and')
-        for author in authors :
+        authors = authors.split(' and ')
+        for author in authors:
             _author = author.split(',')
             family = _author[0].strip().rstrip()
-            rec = {'family':family}
+            rec = {'family': family}
             try :
                 given = _author[1].strip().rstrip()
                 rec['given'] = given
             except IndexError:
                 pass
-            res.append( rec )
+            res.append(rec)
         return res
 
     def json(self) :
