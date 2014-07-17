@@ -17270,11 +17270,7 @@
   [
     "Proc. Combust. Inst.", 
     "Proceedings of the Combustion Institute"
-  ], 
-  [
-    "Proc. Est. Acad. Sci.", 
-    "Proceedings of the Estonian Academy of Sciences"
-  ], 
+  ],
   [
     "Proc. Geol. Assoc.", 
     "Proceedings of the Geologists' Association"
@@ -20560,5 +20556,7 @@
   ["Ann. Stat.", "Annals of Statistics"],
   ["J. R. Statistic. Soc. B", "Journal of the Royal Statistical Society, Series B Statistical Methodology"],
   ["Prog. Theor. Phys.", "Progress of Theoretical Physics"],
-  ["Biochemistry", "Biochemistry"]
+  ["Biochemistry", "Biochemistry"],
+  ["Journal of Machine Learning Research", "J. Mach. Learn. Res."],
+  ["Biopolymers", "Biopolymers"]
 ]
