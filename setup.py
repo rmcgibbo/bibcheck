@@ -1,9 +1,10 @@
 from setuptools import setup
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
-setup(name='bibpy',
+setup(name='bibcheck',
       version=__version__,
-      packages=['bibpy'],
+      packages=['bibcheck'],
       include_package_data=True,
       package_data={'': ['*.json']},
-      scripts=['bibcheck'])
+      entry_points={'console_scripts': ['bibcheck = bibcheck.main:main']}
+)

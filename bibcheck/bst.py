@@ -19,12 +19,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
+#from __future__ import print_function, absolute_import
 import fileinput
 import re
 import json
 import sys
-import bib
+from . import bib
 
 def clear_comments(data):
     """Return the bibtex content without comments"""
@@ -96,7 +99,7 @@ class Function :
             'while$'   : {
                 'arguments' : 2,
                 'function'  : '_while'
-            },            
+            },
             'swap$' : {
                 'arguments' : 2,
                 'function'  : 'swap'
@@ -162,29 +165,29 @@ class Function :
 
     def __init__(self, name, commands, external_entries ):
         self.name = name
-        self.commands = commands        
+        self.commands = commands
         self.external_entries = external_entries
 
     def int2str( self, n ) :
         global VARIABLES
         n = self._lookup( n )
-        print 'int2str', n, VARIABLES
+        print(('int2str', n, VARIABLES))
         self.push( str(n) )
 
     def is_op( self, s ) :
         global FUNCTIONS
         global STACK
-        
+
         if s[0] == "'" and s[1:] in FUNCTIONS :
             s = s[1:]
-            Function( s, FUNCTIONS[ s ], self.external_entries ).execute()            
+            Function( s, FUNCTIONS[ s ], self.external_entries ).execute()
             return {'arguments':1,'function':'push'}
 
         if type(s) == type(()) :
             return ( self.OPS[s[0]], s[1:] )
 
         if s in self.OPS :
-            print s, 'is op. executing.'
+            print((s, 'is op. executing.'))
             return self.OPS[s]
 
         if s in VARIABLES :
@@ -192,13 +195,13 @@ class Function :
             return {'arguments':0,'function':'skip'}
 
         if s in FUNCTIONS:
-            print s, 'is function. executing.'
+            print((s, 'is function. executing.'))
             Function( s, FUNCTIONS[ s ], self.external_entries ).execute()
             return {'arguments':0,'function':'skip'}
-        print "STACK: ", STACK
+        print(("STACK: ", STACK))
         return None
 
-    def format_names( self, s2, i, s1 ) :        
+    def format_names( self, s2, i, s1 ) :
         name = s1.split(' and ')[ self._lookup(i)-1 ]
         self.push( name )
 
@@ -215,9 +218,9 @@ class Function :
         self.push( '#100' )
 
     def add_period( self, a ):
-        i = len(a) - 1        
+        i = len(a) - 1
         while i >= 0 :
-            print '-', a[i]
+            print(('-', a[i]))
             if a[i] != '}' :
                 break
             i -= 1
@@ -233,16 +236,16 @@ class Function :
             ENTRY[a]
             self.push('0')
         except KeyError :
-            self.push('1')            
+            self.push('1')
 
     def empty( self, a ):
-        print '++++++++++++', a, a == ''
+        print(('++++++++++++', a, a == ''))
         if a == '' :
             self.push('1')
-            print "----- 1"
+            print("----- 1")
         else :
             self.push('0')
-            print "----- 0"
+            print("----- 0")
 
     def num_names( self, s ) :
         self.push( s.count(' and ') + 1 )
@@ -254,7 +257,7 @@ class Function :
         self.push('FU')
 
     def write( self, a ) :
-        print "writing", a
+        print(("writing", a))
         global BUFFER
         BUFFER += str(a)
 
@@ -275,15 +278,15 @@ class Function :
             self.push( s[start-1:min(ln+start-1,l)] )
         else :
             self.push( s[:-start:-1] )
-        print "STL:", STACK
+        print(("STL:", STACK))
 
-    def iff( self, b, y, n ) :            
-        if int(b) > 0 :            
+    def iff( self, b, y, n ) :
+        if int(b) > 0 :
             #Function( 'foo', y, self.external_entries ).execute()
             self.execute_f(y)
         else :
             #Function( 'foo', n, self.external_entries ).execute()
-            self.execute_f(n)        
+            self.execute_f(n)
 
     def execute_f( self, f ) :
         if type(f) == type([]) :
@@ -301,130 +304,130 @@ class Function :
 
         commands_res = []
 
-        for i, command in enumerate(commands) :            
+        for i, command in enumerate(commands) :
             commands_res.append( command )
             if command == cmd:
                 if type(commands[i-2]) == type([]) :
                     f1 = self.fix_order(commands[i-2], cmd)
-                    print 'f1'
+                    print('f1')
                 else :
                     f1 = commands[i-2]
-                
+
                 if type(commands[i-i]) == type([]) :
-                    print 'f2'
+                    print('f2')
                     f2 = self.fix_order(commands[i-1], cmd)
                 else :
-                    f2 = commands[i-1]                    
-                
+                    f2 = commands[i-1]
+
                 commands_res.pop()
                 commands_res.pop()
-                commands_res.pop()                
+                commands_res.pop()
                 commands_res.append( ( cmd, f1, f2 ) )
 
         return commands_res
 
     def execute( self, entry = None ):
         global STACK
-        global ENTRY        
-        print "Executing commands", self.name
+        global ENTRY
+        print(("Executing commands", self.name))
 
-        print "YO: ", self.commands
+        print(("YO: ", self.commands))
         commands = self.fix_order( self.commands, "if$" )
         commands = self.fix_order( commands, "while$" )
-        print "COMMANDS: ", commands
+        print(("COMMANDS: ", commands))
 
         #print 'BEFOR > ', self.commands
-        print ' > ', commands
+        print((' > ', commands))
         for command in commands :
 
-            print 'Executing command:', command
-            
+            print(('Executing command:', command))
+
             try :
                 res = self.is_op( command )
             except :
                 res = None
-            
-            if res <> None :
-                
+
+            if res != None :
+
                 # gather all arguments
                 # and call function
                 args = []
-                # print "STACK", STACK                
-                if type(res) == type(()) :                    
+                # print "STACK", STACK
+                if type(res) == type(()) :
                     f = getattr(self, res[0]['function'])
 
-                    if ( res[0]['function'] == 'iff' ) :                    
+                    if ( res[0]['function'] == 'iff' ) :
                         args.append( self._lookup(self.pop()) )
 
                     args.append(res[1][0])
-                    args.append(res[1][1])                                    
+                    args.append(res[1][1])
                 else :
                     for i in range(res['arguments']) :
                         args.append(self.pop())
-                    f = getattr(self, res['function'])                
-                
+                    f = getattr(self, res['function'])
+
                 if f :
-                    print "AAA", args
+                    print(("AAA", args))
                     f(*args)
 
 
-            elif command in [ 
-                    'volume', 
-                    'title', 
-                    'month', 
-                    'year', 
-                    'pages', 
-                    'edition', 
-                    'note', 
-                    'key', 
-                    'author', 
-                    'volume', 
-                    'number', 
+            elif command in [
+                    'volume',
+                    'title',
+                    'month',
+                    'year',
+                    'pages',
+                    'edition',
+                    'note',
+                    'key',
+                    'author',
+                    'volume',
+                    'number',
                     'journal' ] :
                 try :
                     self.push( ENTRY[ command ] )
                 except KeyError :
                     self.push('')
 
-            elif type(command) == type([]) :                
+            elif type(command) == type([]) :
                 pass
                 #print '...', command
-                #Function( 'anon', command ).execute()                
+                #Function( 'anon', command ).execute()
                 #self.execute_f( command )
 
-            elif re.match(r".*\$$", command):                
+            elif re.match(r".*\$$", command):
                 pass
                 #print "TRALALA ", command
-            
-            else :                
+
+            else :
                 if command[0] == '"' and command[-1] == '"' :
                     command = command[1:-1]
                 #STACK.append(command)
                 self.push( command )
-        
-        print "FINISHED EXECUTING %s" % self.name
+
+        print("FINISHED EXECUTING %s" % self.name)
         #print STACK
 
     def assign( self, a, b ):
         global VARIABLES
-        print "AAAAA := ", a, b
+        print(("AAAAA := ", a, b))
         if len(b) > 0 and b[0] == '#' :
-            print "%s := %s" % ( a[1:], int(b[1:]) )
+            print("%s := %s" % ( a[1:], int(b[1:]) ))
             VARIABLES[ a[1:] ] = int(b[1:])
         else :
-            print "%s := %s" % ( a[1:], b )
+            print("%s := %s" % ( a[1:], b ))
             VARIABLES[ a[1:] ] = b
 
     def less( self, a, b ):
-        print "%s < %s" % (a,b)
+        print("%s < %s" % (a,b))
         self.push( a < b and 1 or 0 )
 
     def more( self, a, b ):
-        print "%s > %s" % (a,b)
+        print("%s > %s" % (a,b))
         self.push( a > b and 1 or 0 )
 
     def eq( self, a, b ):
-        print "%s == %s" % (a,b)
+        print("%s == %s" % (a,b))
         self.push( a == b and 1 or 0 )
 
     def concat( self, a, b ):
@@ -437,42 +440,42 @@ class Function :
             b = VARIABLES[b[1:]]
         except :
             pass
-        print "concat(%s,%s)" % (b,a)        
+        print("concat(%s,%s)" % (b,a))
         self.push( str(b)+str(a) )
 
     def isub( self, a, b ):
-        print "%s - %s" % (a,b)
+        print("%s - %s" % (a,b))
         a = self._lookup( a )
         b = self._lookup( b )
         self.push( b - a )
 
-    def iadd( self, a, b ):    
+    def iadd( self, a, b ):
         a = self._lookup( a )
-        b = self._lookup( b )        
-        print "%s + %s" % (a,b)
+        b = self._lookup( b )
+        print("%s + %s" % (a,b))
         self.push( a + b )
 
-    def pop( self ):        
+    def pop( self ):
         global STACK
         try :
             res = STACK.pop()
         except IndexError :
             res = ""
-        print "poping: ", res
+        print("poping: ", res)
         return res
 
     def push( self, item ):
         global STACK
         if type(item) == type(1) or item.isdigit() :
-            STACK.append( "#%s" % item )            
+            STACK.append( "#%s" % item )
         else :
             STACK.append( item )
-        print "pushing: ", STACK[-1]
+        print("pushing: ", STACK[-1])
 
     def _lookup( self, s ) :
         global VARIABLES
 
-        if type(s) == type("") and s[0] == '#' :            
+        if type(s) == type("") and s[0] == '#' :
             return int( s[1:] )
         else :
             try :
@@ -482,11 +485,11 @@ class Function :
 
     def _while( self, a, b ) :
         global STACK
-        print "WHILE"
-        
-        i = 0        
+        print("WHILE")
+
+        i = 0
         while True :
-            self.execute_f(a)            
+            self.execute_f(a)
             res = self._lookup( self.pop() )
             if res == 0 :
                 break
@@ -500,7 +503,7 @@ MACROS = {}
 
 class Bstparser :
     def tokenize(self) :
-        """Returns a token iterator"""        
+        """Returns a token iterator"""
         for item in self.token_re.finditer(self.data):
             i = item.group(0)
             if self.white.match(i) :
@@ -508,16 +511,16 @@ class Bstparser :
                     self.line += 1
                 continue
             else :
-                yield i            
+                yield i
 
-    def __init__(self, bst_data, bib_data) :        
+    def __init__(self, bst_data, bib_data) :
         self.data = bst_data
         self.token = None
         self.token_type = None
         self._next_token = self.tokenize().next
         self.hashtable = {}
         self.mode = None
-        self.records = {}        
+        self.records = {}
         self.line = 1
         self.last_called_function = None
         self.bib_data = bib_data
@@ -535,7 +538,7 @@ class Bstparser :
 
     def next_token(self):
         """Returns next token"""
-        self.token = self._next_token()        
+        self.token = self._next_token()
 
     def parse(self) :
         """Parses self.data and stores the parsed bibtex to self.rec"""
@@ -545,11 +548,11 @@ class Bstparser :
 
                 if self.token == 'ENTRY' :
                     self.entry()
-                elif self.token == 'INTEGERS' : 
+                elif self.token == 'INTEGERS' :
                     self.integers()
-                elif self.token == 'FUNCTION' : 
+                elif self.token == 'FUNCTION' :
                     self.function()
-                elif self.token == 'ITERATE' :  
+                elif self.token == 'ITERATE' :
                     self.iterate()
                 elif self.token == 'MACRO' :
                     self.macro()
@@ -563,9 +566,9 @@ class Bstparser :
                     self.sort()
                 elif self.token == 'STRINGS' :
                     self.strings()
-                else :                  
+                else :
                     raise NameError("Expecting a command. I got %s" % self.token)
-                
+
             except StopIteration :
                 break
 
@@ -579,18 +582,18 @@ class Bstparser :
     def push( self, item ):
         global STACK
         if type(item) == type(1) or item.isdigit() :
-            STACK.append( "#%s" % item )            
+            STACK.append( "#%s" % item )
         else :
             STACK.append( item )
-        print "pushing: ", STACK[-1]
+        print("pushing: ", STACK[-1])
 
-    def pop( self ):        
+    def pop( self ):
         global STACK
         try :
             res = STACK.pop()
         except IndexError :
             res = ""
-        print "poping: ", res
+        print("poping: ", res)
         return res
 
     def entry(self):
@@ -601,12 +604,12 @@ class Bstparser :
 
             # get external entries
             external_entries = {}
-            while True:                
+            while True:
                 if self.token == '}' :
                     break;
                 external_entries[ self.token ] = True
-                self.next_token()            
-            
+                self.next_token()
+
             if self.token == '}' :
                 self.next_token()
                 if self.token == '{' :
@@ -614,12 +617,12 @@ class Bstparser :
 
                     # get internal integers
                     internal_ints = {}
-                    while True:                
+                    while True:
                         if self.token == '}' :
                             break;
                         internal_ints[ self.token ] = True
-                        self.next_token()                    
-                    
+                        self.next_token()
+
                     if self.token == '}' :
                         self.next_token()
                         if self.token == '{' :
@@ -627,31 +630,31 @@ class Bstparser :
 
                             # get internal string
                             internal_str = {}
-                            while True:                
+                            while True:
                                 if self.token == '}' :
                                     break;
                                 internal_str[ self.token ] = True
-                                self.next_token()                            
+                                self.next_token()
 
                             if self.token == '}' :
 
                                 self.external_entries = external_entries
                                 self.internal_ints = internal_ints
-                                self.internal_str = internal_str     
+                                self.internal_str = internal_str
 
                                 return
                             else :
-                                raise NameError("} expected 6") 
+                                raise NameError("} expected 6")
                         else:
                             raise NameError("{ expected 5")
                     else:
-                        raise NameError("} expected 4")                         
+                        raise NameError("} expected 4")
                 else :
                     raise NameError("{ expected 3")
             else :
                 raise NameError("} expected 2")
         else :
-            raise NameError("{ expected 1")        
+            raise NameError("{ expected 1")
 
     def integers(self):
         self.integer_list = []
@@ -664,7 +667,7 @@ class Bstparser :
                     break
                 self.integer_list.append(self.token)
                 self.next_token()
-            print "INTEGERS", self.integer_list
+            print("INTEGERS", self.integer_list)
         else :
             raise NameError("{ expected 2")
 
@@ -676,14 +679,14 @@ class Bstparser :
         if self.token == '{' :
             self.next_token()
 
-            # Get name            
+            # Get name
             name = self.token
-            self.next_token()           
-            
+            self.next_token()
+
             if self.token == '}' :
                 self.next_token()
                 bracket = 0
-                if self.token == '{' :                    
+                if self.token == '{' :
                     self.next_token()
 
                     # NEED TO HAVE NESTED COMMANDS
@@ -701,21 +704,21 @@ class Bstparser :
                         else :
                             commands.append( self.token )
                             self.next_token()
-                        if self.token == '}' :                            
-                            break                    
+                        if self.token == '}' :
+                            break
 
                     #print "YO",commands
-                    if self.token == '}':                        
+                    if self.token == '}':
                         FUNCTIONS[ name ] = commands
                         return
                     else:
-                        raise NameError("} expected 4")                         
+                        raise NameError("} expected 4")
                 else :
                     raise NameError("{ expected 3")
             else :
                 raise NameError("} expected 2")
         else :
-            raise NameError("{ expected 1") 
+            raise NameError("{ expected 1")
 
     def command( self, depth = 0 ) :
         cmd = []
@@ -728,14 +731,14 @@ class Bstparser :
                 cmd.append( res )
             elif self.token == '}' :
                 if depth > 0 :
-                    self.next_token()                
+                    self.next_token()
                 return cmd
             else :
                 cmd.append( self.token )
-                self.next_token()                
-                
+                self.next_token()
+
     def string( self ) :
-        s = ''        
+        s = ''
         if self.token == '"' :
             s += '"'
             self.next_token()
@@ -745,7 +748,7 @@ class Bstparser :
 
             if self.token == '"' :
                 s += self.token
-                self.next_token()                
+                self.next_token()
                 return s
 
     def macro(self):
@@ -758,8 +761,8 @@ class Bstparser :
             # Get name
             #print "MACRO", self.token
             name = self.token
-            self.next_token()           
-            
+            self.next_token()
+
             if self.token == '}' :
                 self.next_token()
                 bracket = 0
@@ -779,16 +782,16 @@ class Bstparser :
                         self.next_token()
 
                     if self.token == '}' and bracket == 0:
-                        MACROS[ name ] = ' '.join(val)                      
+                        MACROS[ name ] = ' '.join(val)
                         return
                     else:
-                        raise NameError("} expected 4")                         
+                        raise NameError("} expected 4")
                 else :
                     raise NameError("{ expected 3")
             else :
                 raise NameError("} expected 2")
         else :
-            raise NameError("{ expected 1") 
+            raise NameError("{ expected 1")
 
     def execute(self):
         self.next_token()
@@ -796,9 +799,9 @@ class Bstparser :
             self.next_token()
 
             # Get name
-            print "EXECUTE", self.token
-            f = self.token  
-            Function( f, FUNCTIONS[ f ], self.external_entries ).execute()     
+            print("EXECUTE", self.token)
+            f = self.token
+            Function( f, FUNCTIONS[ f ], self.external_entries ).execute()
 
             self.eat_except('}') ###
         else :
@@ -807,12 +810,12 @@ class Bstparser :
     def read(self):
         self.bib = bib.Bibparser(self.bib_data)
         self.bib.parse()
-        pass        
+        pass
 
     def reverse(self):
         self.next_token()
         if self.token == '{' :
-            self.next_token()           
+            self.next_token()
             self.eat_except('}') ###
         else :
             raise NameError("{ expected 2")
@@ -820,7 +823,7 @@ class Bstparser :
     def sort(self):
         self.next_token()
         if self.token == '{' :
-            self.next_token()           
+            self.next_token()
             self.eat_except('}') ###
         else :
             raise NameError("{ expected 2")
@@ -831,15 +834,15 @@ class Bstparser :
         if self.token == '{' :
             self.next_token()
 
-            func = self.token            
+            func = self.token
 
             for entry in self.bib.records:
-                ENTRY = self.bib.records[entry] 
-                # Execute func for 
+                ENTRY = self.bib.records[entry]
+                # Execute func for
                 # the specific entity
                 if func == 'call.type$' :
                     #print "\t call.type$", entry
-                    func = self.bib.records[entry]['record_type']                
+                    func = self.bib.records[entry]['record_type']
                 Function( func, FUNCTIONS[ func ], self.external_entries ).execute( self.bib.records[entry] )
 
             self.eat_except('}') ###
@@ -854,35 +857,35 @@ class Bstparser :
 
             while True :
                 if self.token == '}' :
-                    break                
+                    break
                 integer_list.append(self.token)
                 self.next_token()
             #print "STRINGS", integer_list
         else :
             raise NameError("{ expected 2")
 
-# def main() :    
+# def main() :
 #     """Main function"""
-# 
+#
 #     _bst_filename = sys.argv[1]
 #     _bib_filename = sys.argv[2]
-# 
+#
 #     with open( _bst_filename, 'r' ) as f :
-#         bst_file_data = f.read()     
-# 
+#         bst_file_data = f.read()
+#
 #     with open( _bib_filename, 'r' ) as f :
-#         bib_file_data = f.read()     
-#     
-#     bst_file_data = clear_comments(bst_file_data) 
-#     bib_file_data = clear_comments(bib_file_data) 
-# 
+#         bib_file_data = f.read()
+#
+#     bst_file_data = clear_comments(bst_file_data)
+#     bib_file_data = clear_comments(bib_file_data)
+#
 #     bst = Bstparser(bst_file_data, bib_file_data)
 #     bst.parse()
-# 
+#
 #     print "------"
 #     print
 #     print STACK
 #     print BUFFER
-#     
+#
 # if __name__ == "__main__" :
 #     main()

@@ -6,6 +6,7 @@ ACS = {
         'issued': [],
         'volume': [],
         'page': [],
+        'doi': [],
     },
     'book': {
         'author': [],

@@ -20,13 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+#from __future__ import print_function, absolute_import
 import os
 import re
 import json
 from collections import OrderedDict
 from pprint import pprint
 
-import abbrevs
+from . import abbrevs
 
 def clear_comments(data):
     """Return the bibtex content without comments"""
@@ -36,9 +37,9 @@ def clear_comments(data):
 
 def log( f ):
     return f
-    
+
 def warn(msg):
-    print 'Warning: {}'.format(msg)
+    print('Warning: {}'.format(msg))
 
 class Bibparser() :
     """Main class for Bibtex parsing"""
@@ -84,7 +85,7 @@ class Bibparser() :
         """Returns next token"""
         self.token = self._next_token()
         if self.verbose:
-            print self.line, self.token
+            print(self.line, self.token)
 
     @log
     def database(self) :
@@ -288,8 +289,8 @@ class Bibparser() :
         warner = Warner()
         n_validated_entries = 0
         journal_validator = abbrevs.Validator()
-    
-        
+
+
         for key, value in self.records.iteritems():
             type = value['type'].lower()
             if type not in schema:
@@ -303,17 +304,17 @@ class Bibparser() :
                     print '\033[91mERROR: "{}" is missing field "{}" on line {}\033[0m'.format(key, item, line)
                 # if len(missing_items) > 0:
                     # print value
-            
+
             if 'journal' in value:
                 recommendation = journal_validator.validate(value['journal'])
                 if recommendation is not None:
                     msg = '\033[93mWARNING: Journal in {} (line {}), "{}" was not correct. Consider "{}"\033[0m'
                     print msg.format(key, line, value['journal'], recommendation)
                     print
-            
-            
+
+
             n_validated_entries += 1
-            
+
         print 'Entries validated:', n_validated_entries
 
 

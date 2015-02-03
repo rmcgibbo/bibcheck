@@ -1,9 +1,13 @@
-#!/usr/bin/env python
+from __future__ import print_function, absolute_import
 import os
+import sys
 from argparse import ArgumentParser
+PY2 = sys.version_info[0] == 2
+if PY2:
+    from codecs import open
 
-from bibpy import bib
-from bibpy import schemas
+from . import bib
+from . import schemas
 
 
 def parse_cmd_line():
@@ -25,15 +29,11 @@ def parse_cmd_line():
 
 def main():
     args = parse_cmd_line()
-    with open(args.bibtex) as f:
+    with open(args.bibtex, 'r', encoding='utf-8') as f:
         lines = os.linesep.join(l.strip() for l in f)
-    
+
     bibobject = bib.Bibparser(lines, verbose=args.verbose)
     bibobject.parse()
-    
+
     schema = getattr(schemas, args.schema)
     bibobject.validate(schema)
-
-
-if __name__ == '__main__':
-    main()
