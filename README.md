@@ -14,6 +14,9 @@ Usage
 -----
 Run the script `bibcheck`, giving it the path to your .bib file.
 
+Features
+--------
+- Recommends proper journal abbreviations.
 
 License
 -------

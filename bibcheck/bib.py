@@ -290,9 +290,42 @@ class Bibparser() :
             res.append(rec)
         return res
 
-    def json(self) :
-        """Returns json formated records"""
-        return json.dumps({'items':self.records.values()})
+    # def json(self) :
+    #     """Returns json formated records"""
+    #     return json.dumps({'items':self.records.values())})
+    #
+    def rename_ids(self):
+        newrecords = OrderedDict()
+        counter = 0
+        for key, value in iteritems(self.records):
+            newkey = value['author'][0]['family'].split()[-1] + value['issued']['literal'] + value['title'].split()[0]
+            newkey = newkey.lower()
+            value['id'] = newkey
+
+            newrecords[newkey] = value
+
+        self.records = newrecords
+
+    def to_bibtex(self):
+        alllines = []
+        for key, value in iteritems(self.records):
+            type = value.pop('type')
+            id = value.pop('id')
+            lines = ['@%s{%s' % (type, id)]
+            for k, v in iteritems(value):
+                if k == 'author':
+                    q = ' and '.join([a.get('given', '') + ' '+ a['family'] for a in v])
+                    q = q.strip().replace('  ', ' ')
+                    q = q.replace(' { ', '{').replace(' } ', '}')
+                    lines.append('author = {%s}' % q)
+                elif k == 'issued':
+                    lines.append('year = {%s}' % v['literal'])
+                else:
+                    lines.append('%s = {%s}' % (k, v))
+
+            record = ',\n'.join(lines) + '\n}'
+            alllines.append(record)
+        return '\n'.join(alllines)
 
     def validate(self, schema):
         warner = Warner()
